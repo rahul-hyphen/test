@@ -9,7 +9,7 @@ CI/CD pipeline using Jenkins, Ansible, Docker, and AWS for automated app deploym
 
 -> Jenkins → CI/CD automation
 -> Ansible → Server configuration & deployments
--> Linux Server (Ubuntu/) → Master for configuration & Target node for app deployment
+-> Linux Server (Ubuntu) → Master for configuration & Target node for app deployment
 -> GitHub → Stores code, Jenkinsfile, Ansible playbooks, and Dockerfile
 -> Docker → Builds image and runs application inside a container
 
@@ -28,12 +28,12 @@ Step 6 → Application accessible at:  http://<NODE_IP>:8080
 
 jenkins-ansible-docker/
 │
-├── Jenkinsfile      # Jenkins pipeline definition  
-├── playbook.yml     # Ansible playbook to configure Docker & deploy app  
-├── inventory        # Ansible inventory with target server details  
-├── Dockerfile       # Build containerized application  
-├── index.html       # Sample web application (deployed inside container)  
-└── README.md        # Project documentation  
+├── Jenkinsfile      # Jenkins pipeline definition
+├── playbook.yml     # Ansible playbook to configure Docker & deploy app
+├── inventory        # Ansible inventory with target server details
+├── Dockerfile       # Build containerized application
+├── index.html       # Sample web application (deployed inside container)
+└── README.md        # Project documentation
 
 
 5. Tools & Plugins Required
@@ -41,12 +41,12 @@ jenkins-ansible-docker/
 --> On Jenkins Master
 Ansible Plugin
 Git
-Pipeline Plugin 
-SSH Agent Plugin 
+Pipeline Plugin
+SSH Agent Plugin
 GitHub Integration Plugin
 Blue Ocean (Optional For better view of pipeline)
 
 
-##  Author  ## 
+## Author ##
 Ankit Choudhary
 💡 Exploring real-world DevOps with Jenkins, Ansible, and Docker — making deployments smarter, faster, and hands-on.
