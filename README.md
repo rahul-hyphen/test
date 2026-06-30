@@ -1,446 +1,273 @@
+# 🚀 Todo Application Deployment on AWS using ECR, ECS (Fargate) and CloudWatch
 
-# Phase 1: Launch EC2 Instance
+## Project Overview
 
-Launch an Ubuntu EC2 instance and paste the following script in **User Data**.
+This project demonstrates how to deploy a containerized Node.js Todo Application on AWS using Docker, Amazon ECR, Amazon ECS (Fargate), and Amazon CloudWatch.
 
-## User Data Script
-
-```bash
-#!/bin/bash
-
-apt update -y
-
-apt install git unzip -y
-
-apt install docker.io -y
-systemctl start docker
-systemctl enable docker
-
-usermod -aG docker ubuntu
-
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-
-cd /tmp
-
-unzip awscliv2.zip
-
-./aws/install
-
-cd /home/ubuntu
-
-git clone https://github.com/master-ankitt/todo-app-via-aws-services.git
-
-chown -R ubuntu:ubuntu /home/ubuntu/todo-app-via-aws-services
-
-echo "User data execution completed" > /var/log/userdata-success.log
-```
+The application source code is stored on an EC2 instance, containerized using Docker, pushed to Amazon ECR, and deployed on Amazon ECS using the Fargate launch type. Application logs are collected and monitored using Amazon CloudWatch.
 
 ---
 
-## Verify Installation
+# Project Scenario
 
-```bash
-docker --version
-```
+A company wants to deploy a Todo Application on AWS without managing servers.
 
-```bash
-aws --version
-```
+Requirements:
 
-```bash
-git --version
-```
+- Containerize the application.
+- Store container images securely.
+- Run containers without managing EC2 instances.
+- Monitor application logs.
+- Provide public access to the application.
 
-```bash
-cd ~/todo-app-via-aws-services
-```
-
-```bash
-ls
-```
-
----
-
-# Phase 2: Create IAM User
-
-Navigate:
+To achieve this, we use:
 
 ```text
-IAM
-  ↓
-Users
-  ↓
-Create User
-```
-
-User Name:
-
-```text
-ankit
-```
-
-Attach the following permissions:
-
-```text
-AmazonElasticContainerRegistryPublicFullAccess
-```
-
-```text
-AmazonElasticContainerRegistryPublicPowerUser
-```
-
-```text
-AmazonElasticContainerRegistryPublicReadOnly
-```
-
-```text
-AmazonEC2FullAccess
-```
-
----
-
-# Phase 3: Create Access Key
-
-Navigate:
-
-```text
-IAM
-  ↓
-Users
-  ↓
-ankit
-  ↓
-Security Credentials
-  ↓
-Create Access Key
-```
-
----
-
-# Phase 4: Configure AWS CLI
-
-Run:
-
-```bash
-aws configure
-```
-
-Provide:
-
-```text
-AWS Access Key ID
-```
-
-```text
-AWS Secret Access Key
-```
-
-```text
-ap-south-1
-```
-
-Verify:
-
-```bash
-aws sts get-caller-identity
-```
-
----
-
-# Phase 5: Create Public ECR Repository
-
-Navigate:
-
-```text
+GitHub
+   |
+EC2 Instance
+   |
+Docker
+   |
 Amazon ECR
-  ↓
-Public Registry
-  ↓
-Repositories
-  ↓
-Create Repository
-```
-
-Repository Name:
-
-```text
-todo-app
-```
-
-Operating System:
-
-```text
-Linux
-```
-
-Architecture:
-
-```text
-x86-64
-```
-
-Click:
-
-```text
-Create Repository
+   |
+Amazon ECS (Fargate)
+   |
+CloudWatch Logs
+   |
+End Users
 ```
 
 ---
 
-## Push Docker Image to ECR
+# Tools and Technologies Used
 
-Navigate:
+## 1. Git
+
+Used to clone the application source code from GitHub.
+
+### Purpose
 
 ```text
-Repository
-  ↓
-View Push Commands
+Source Code Management
+Version Control
+Repository Cloning
 ```
 
-Run the generated commands.
-
-### Login to ECR
+### Command Used
 
 ```bash
-sudo aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/q2k6c3h5
+git clone https://github.com/master-ankitt/todo-app-via-aws-services.git
 ```
 
-### Build Docker Image
+---
+
+## 2. Docker
+
+Docker is used to package the application and its dependencies into a container image.
+
+### Purpose
+
+```text
+Containerization
+Portable Deployments
+Application Packaging
+```
+
+### Commands Used
 
 ```bash
-cd ~/todo-app-via-aws-services
+docker build -t todo-app .
 ```
-
-```bash
-sudo docker build -t todo-app .
-```
-
-### Tag Docker Image
-
-```bash
-sudo docker tag todo-app:latest public.ecr.aws/q2k6c3h5/todo-app:latest
-```
-
-### Push Docker Image
-
-```bash
-sudo docker push public.ecr.aws/q2k6c3h5/todo-app:latest
-```
-
----
-
-# Phase 6: Create ECS Cluster
-
-Navigate:
-
-```text
-Amazon ECS
-  ↓
-Clusters
-  ↓
-Create Cluster
-```
-
-Select:
-
-```text
-Fargate Only
-```
-
-Cluster Name:
-
-```text
-todo-app-cluster
-```
-
-Container Insights:
-
-```text
-Container Insights with Enhanced Observability
-```
-
-Click:
-
-```text
-Create
-```
-
----
-
-# Phase 7: Create Task Definition
-
-Navigate:
-
-```text
-Amazon ECS
-  ↓
-Task Definitions
-  ↓
-Create Task Definition
-```
-
-Task Name:
-
-```text
-todo-task-1
-```
-
-Launch Type:
-
-```text
-AWS Fargate
-```
-
-Container Name:
-
-```text
-todo-app
-```
-
-Image URI:
-
-```text
-public.ecr.aws/q2k6c3h5/todo-app:latest
-```
-
-Container Port:
-
-```text
-8000
-```
-
-Protocol:
-
-```text
-TCP
-```
-
-Log Collection:
-
-```text
-Amazon CloudWatch Logs
-```
-
-Click:
-
-```text
-Create
-```
-
----
-
-# Phase 8: Run ECS Task
-
-Navigate:
-
-```text
-Amazon ECS
-  ↓
-Clusters
-  ↓
-todo-app-cluster
-```
-
-Select:
-
-```text
-Run New Task
-```
-
-Task Definition:
-
-```text
-todo-task-1
-```
-
-Enable:
-
-```text
-Public IP
-```
-
-Security Group Port:
-
-```text
-8000
-```
-
-Click:
-
-```text
-Create
-```
-
----
-
-# Phase 9: Verify Application
-
-Navigate:
-
-```text
-Cluster
-  ↓
-Tasks
-  ↓
-Running Task
-```
-
-Copy:
-
-```text
-Public IP Address
-```
-
-Open:
-
-```text
-http://<PUBLIC-IP>:8000
-```
-
-Example:
-
-```text
-http://13.232.xxx.xxx:8000
-```
-
----
-
-# Phase 10: View Logs in CloudWatch
-
-Navigate:
-
-```text
-CloudWatch
-  ↓
-Log Groups
-```
-
-Select the ECS log group and verify container logs.
-
----
-
-# Useful Commands
-
-## Verify Docker Images
 
 ```bash
 docker images
 ```
 
-## Verify Running Containers
+---
 
-```bash
-docker ps
+## 3. AWS CLI
+
+AWS CLI is used to interact with AWS services directly from the EC2 instance.
+
+### Purpose
+
+```text
+Authenticate with AWS
+Push Images to ECR
+Manage AWS Resources
 ```
 
-## Verify ECS Tasks
+### Commands Used
 
 ```bash
-aws ecs list-tasks --cluster todo-app-cluster
+aws configure
 ```
-
-## Verify AWS Identity
 
 ```bash
 aws sts get-caller-identity
 ```
+
+---
+
+## 4. Amazon EC2
+
+Amazon EC2 provides a virtual machine where we build and manage the Docker image.
+
+### Purpose
+
+```text
+Docker Host
+AWS CLI Host
+Build Environment
+```
+
+---
+
+## 5. AWS IAM
+
+IAM provides authentication and authorization for AWS services.
+
+### Purpose
+
+```text
+User Management
+Access Control
+Permissions
+```
+
+### IAM User Created
+
+```text
+ankit
+```
+
+### Permissions Assigned
+
+```text
+AmazonElasticContainerRegistryPublicFullAccess
+AmazonElasticContainerRegistryPublicPowerUser
+AmazonElasticContainerRegistryPublicReadOnly
+AmazonEC2FullAccess
+```
+
+---
+
+## 6. Amazon ECR (Elastic Container Registry)
+
+Amazon ECR stores Docker images.
+
+### Purpose
+
+```text
+Container Image Repository
+Image Version Management
+Secure Storage
+```
+
+### Workflow
+
+```text
+Docker Image
+      |
+      v
+Amazon ECR
+```
+
+---
+
+## 7. Amazon ECS (Elastic Container Service)
+
+Amazon ECS runs Docker containers.
+
+### Purpose
+
+```text
+Container Orchestration
+Container Management
+Application Deployment
+```
+
+### Launch Type Used
+
+```text
+AWS Fargate
+```
+
+Reason:
+
+```text
+No Server Management
+Automatic Scaling
+Serverless Container Execution
+```
+
+---
+
+## 8. AWS Fargate
+
+Fargate is the compute engine used by ECS.
+
+### Purpose
+
+```text
+Run Containers Without EC2
+Serverless Compute
+```
+
+---
+
+## 9. Amazon CloudWatch
+
+CloudWatch collects application and container logs.
+
+### Purpose
+
+```text
+Log Collection
+Monitoring
+Troubleshooting
+```
+
+### Example
+
+```text
+Container Logs
+      |
+      v
+CloudWatch Logs
+```
+
+---
+
+# Architecture Diagram
+
+```text
+GitHub Repository
+        |
+        v
+EC2 Instance
+        |
+        v
+Docker Build
+        |
+        v
+Amazon ECR
+        |
+        v
+Amazon ECS (Fargate)
+        |
+        v
+CloudWatch Logs
+        |
+        v
+Users
+```
+
+---
+
+# Deployment Phases
+
+## Phase 1: Launch EC2 Instance
+
+...
